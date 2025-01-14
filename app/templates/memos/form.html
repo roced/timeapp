@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if memo %}Edit Memo{% else %}Create Memo{% endif %} - TimeApp
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% if memo %}Edit Memo{% else %}Create Memo{% endif %}</h1>
+        <a href="{{ url_for('memos.list') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Memos
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" class="needs-validation" novalidate>
+                {{ form.csrf_token }}
+                
+                <div class="mb-3">
+                    {{ form.title.label(class="form-label") }}
+                    {{ form.title(class="form-control") }}
+                    {% if form.title.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.title.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.content.label(class="form-label") }}
+                    {{ form.content(class="form-control", rows=5) }}
+                    {% if form.content.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.content.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.due_date.label(class="form-label") }}
+                    {{ form.due_date(class="form-control", type="date") }}
+                    {% if form.due_date.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.due_date.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    {% if memo %}Update Memo{% else %}Create Memo{% endif %}
+                </button>
+                <a href="{{ url_for('memos.list') }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

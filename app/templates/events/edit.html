@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Event - TimeApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Edit Event</h1>
+        <a href="{{ url_for('events.view', id=event.id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Event
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% include "events/form.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

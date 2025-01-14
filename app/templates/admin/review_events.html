@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Review Events - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Review Uploaded Events</h1>
+        <a href="{{ url_for('admin.upload_events') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Upload
+        </a>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.upload_events') }}">
+        <input type="hidden" name="confirm" value="true">
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="selectAll" checked>
+                                        <label class="form-check-label" for="selectAll">Include</label>
+                                    </div>
+                                </th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Location</th>
+                                <th>Venue</th>
+                                <th>Public</th>
+                                <th>Tags</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in events %}
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input event-checkbox" type="checkbox" 
+                                               name="include_{{ loop.index0 }}" 
+                                               id="include_{{ loop.index0 }}"
+                                               checked>
+                                    </div>
+                                </td>
+                                <td>{{ event.title }}</td>
+                                <td>{{ event.description[:100] }}...</td>
+                                <td>{{ event.start_date }}</td>
+                                <td>{{ event.end_date or '' }}</td>
+                                <td>{{ event.location }}</td>
+                                <td>{{ event.venue }}</td>
+                                <td>{{ 'Yes' if event.is_public else 'No' }}</td>
+                                <td>{{ event.tags }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <input type="hidden" name="events" id="eventsData" value="">
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">Back</button>
+                    <button type="submit" class="btn btn-success" onclick="prepareData()">
+                        <i class="fas fa-check"></i> Confirm and Import
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% block scripts %}
+<script>
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.getElementsByClassName('event-checkbox');
+    for (let checkbox of checkboxes) {
+        checkbox.checked = this.checked;
+    }
+});
+
+function prepareData() {
+    const events = {{ events|tojson|safe }};
+    const checkboxes = document.getElementsByClassName('event-checkbox');
+    
+    for (let i = 0; i < events.length; i++) {
+        events[i].include = checkboxes[i].checked;
+    }
+    
+    document.getElementById('eventsData').value = JSON.stringify(events);
+}
+</script>
+{% endblock %}
+
+{% endblock %} 

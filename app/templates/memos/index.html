@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Memos - TimeApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center">
+        <h1>Redirecting...</h1>
+        <p>If you are not redirected automatically, please <a href="{{ url_for('memos.list') }}">click here</a>.</p>
+    </div>
+</div>
+
+<script>
+    window.location.href = "{{ url_for('memos.list') }}";
+</script>
+{% endblock %} 

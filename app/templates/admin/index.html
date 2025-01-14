@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - TimeApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Admin Dashboard</h1>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Users</h5>
+                    <p class="card-text display-4">{{ user_count }}</p>
+                    <a href="{{ url_for('admin.manage_users') }}" class="btn btn-primary">Manage Users</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Events</h5>
+                    <p class="card-text display-4">{{ event_count }}</p>
+                    <a href="{{ url_for('events.list') }}" class="btn btn-primary">View Events</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Memos</h5>
+                    <p class="card-text display-4">{{ memo_count }}</p>
+                    <a href="{{ url_for('memos.list') }}" class="btn btn-primary">View Memos</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Promotions</h5>
+                    <p class="card-text display-4">{{ pending_promotions }}</p>
+                    <a href="{{ url_for('admin.manage_promotions') }}" class="btn btn-light btn-sm">
+                        Manage Promotions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

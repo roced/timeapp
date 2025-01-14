@@ -1,0 +1,4 @@
+title,description,start_date,start_time,end_date,location,venue,is_public,is_recurring,info_link,tags
+Summer Festival,Annual summer music festival,2024-07-15,14:00,2024-07-17,Central Park,Main Stage,true,false,https://summerfest.com,music;festival;summer
+Tech Conference,Developer conference 2024,2024-09-20,09:00,,Convention Center,Hall A,true,false,https://techconf.com,tech;conference;coding
+Weekly Meetup,Regular tech meetup,2024-06-01,18:30,,Tech Hub,Meeting Room 1,true,true,https://meetup.com,tech;networking;weekly 

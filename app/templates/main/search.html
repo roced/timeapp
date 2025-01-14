@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - TimeApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Search Form -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Search</h5>
+                    <form action="{{ url_for('main.search') }}" method="GET">
+                        <div class="mb-3">
+                            <label for="q" class="form-label">Search Term</label>
+                            <input type="text" class="form-control" id="q" name="q" value="{{ request.args.get('q', '') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="filter_by" class="form-label">Filter By</label>
+                            <select class="form-select" id="filter_by" name="filter_by">
+                                <option value="all" {% if request.args.get('filter_by') == 'all' %}selected{% endif %}>All</option>
+                                <option value="events" {% if request.args.get('filter_by') == 'events' %}selected{% endif %}>Events</option>
+                                <option value="upcoming" {% if request.args.get('filter_by') == 'upcoming' %}selected{% endif %}>Upcoming Events</option>
+                                <option value="past" {% if request.args.get('filter_by') == 'past' %}selected{% endif %}>Past Events</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tag" class="form-label">Tag</label>
+                            <input type="text" class="form-control" id="tag" name="tag" value="{{ request.args.get('tag', '') }}">
+                            <div class="form-text">Filter by specific tag</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div class="col-md-8">
+            <h1>Search Results</h1>
+            {% if query %}
+            <p class="text-muted">Showing results for: "{{ query }}"</p>
+            {% endif %}
+
+            {% if results %}
+            <div class="row">
+                {% for event in results %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ event.title }}</h5>
+                            <p class="card-text">{{ event.description[:150] }}{% if event.description|length > 150 %}...{% endif %}</p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> {{ event.start_date.strftime('%Y-%m-%d') }}
+                                    {% if event.location %}
+                                    <br><i class="fas fa-map-marker-alt"></i> {{ event.location }}
+                                    {% endif %}
+                                </small>
+                            </p>
+                            {% if event.tags %}
+                            <p class="card-text">
+                                {% for tag in event.tags.split(',') %}
+                                <span class="badge bg-secondary">{{ tag.strip() }}</span>
+                                {% endfor %}
+                            </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('events.view', id=event.id) }}" class="btn btn-primary btn-sm">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if results.has_prev or results.has_next %}
+            <nav aria-label="Search results pages">
+                <ul class="pagination justify-content-center">
+                    {% if results.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.search', q=query, page=results.prev_num) }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in results.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == results.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('main.search', q=query, page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if results.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.search', q=query, page=results.next_num) }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="alert alert-info">
+                {% if query %}
+                No results found for your search.
+                {% else %}
+                Enter a search term to begin.
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

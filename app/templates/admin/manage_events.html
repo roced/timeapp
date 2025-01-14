@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Events - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Manage Events</h1>
+        <div>
+            <a href="{{ url_for('events.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Event
+            </a>
+            <a href="{{ url_for('admin.upload_events') }}" class="btn btn-secondary">
+                <i class="fas fa-upload"></i> Upload Events
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Owner</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td>{{ event.title }}</td>
+                            <td>{{ event.owner.username }}</td>
+                            <td>{{ event.start_date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if event.is_public else 'secondary' }}">
+                                    {{ 'Public' if event.is_public else 'Private' }}
+                                </span>
+                                {% if event.pending_promotion %}
+                                <span class="badge bg-warning">Pending Review</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ event.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('events.view', id=event.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('events.edit', id=event.id) }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if event.pending_promotion %}
+                                    <form action="{{ url_for('admin.promote_event', id=event.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('admin.reject_promotion', id=event.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

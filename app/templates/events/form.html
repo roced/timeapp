@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if event %}Edit Event{% else %}Create Event{% endif %} - TimeApp
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% if event %}Edit Event{% else %}Create Event{% endif %}</h1>
+        <a href="{{ url_for('events.list') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Events
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" class="needs-validation" novalidate>
+                {{ form.csrf_token }}
+                {{ form.current_role }}
+                
+                <div class="mb-3">
+                    {{ form.title.label(class="form-label") }}
+                    {{ form.title(class="form-control") }}
+                    {% if form.title.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.title.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control", rows=5) }}
+                    {% if form.description.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.description.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.start_date.label(class="form-label") }}
+                        {{ form.start_date(class="form-control", type="date") }}
+                        {% if form.start_date.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.start_date.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.start_time.label(class="form-label") }}
+                        {{ form.start_time(class="form-control", type="time") }}
+                        {% if form.start_time.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.start_time.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.is_multiday(class="form-check-input") }}
+                        {{ form.is_multiday.label(class="form-check-label") }}
+                    </div>
+                </div>
+
+                <div class="mb-3" id="end-date-group" style="display: none;">
+                    {{ form.end_date.label(class="form-label") }}
+                    {{ form.end_date(class="form-control", type="date") }}
+                    {% if form.end_date.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.end_date.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.location.label(class="form-label") }}
+                    {{ form.location(class="form-control") }}
+                    {% if form.location.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.location.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.venue.label(class="form-label") }}
+                    {{ form.venue(class="form-control") }}
+                    {% if form.venue.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.venue.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        {% if current_user.role == 'viewer' %}
+                            {{ form.is_public(class="form-check-input", disabled=true) }}
+                            {{ form.is_public.label(class="form-check-label text-muted") }}
+                            <small class="form-text text-muted d-block">
+                                Viewers can only create private events. You can request to make it public later.
+                            </small>
+                        {% else %}
+                            {{ form.is_public(class="form-check-input") }}
+                            {{ form.is_public.label(class="form-check-label") }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.is_recurring(class="form-check-input") }}
+                        {{ form.is_recurring.label(class="form-check-label") }}
+                    </div>
+                </div>
+
+                <div class="mb-3" id="recurrence-group" style="display: none;">
+                    {{ form.recurrence_pattern.label(class="form-label") }}
+                    {{ form.recurrence_pattern(class="form-control") }}
+                    {% if form.recurrence_pattern.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.recurrence_pattern.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.info_link.label(class="form-label") }}
+                    {{ form.info_link(class="form-control") }}
+                    {% if form.info_link.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.info_link.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.tags.label(class="form-label") }}
+                    {{ form.tags(class="form-control") }}
+                    {% if form.tags.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.tags.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="form-text">Separate tags with semicolons (;)</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    {% if event %}Update Event{% else %}Create Event{% endif %}
+                </button>
+                <a href="{{ url_for('events.list') }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const multidayToggle = document.getElementById('is_multiday');
+    const endDateGroup = document.getElementById('end-date-group');
+    const recurringToggle = document.getElementById('is_recurring');
+    const recurrenceGroup = document.getElementById('recurrence-group');
+
+    function toggleEndDate() {
+        endDateGroup.style.display = multidayToggle.checked ? 'block' : 'none';
+    }
+
+    function toggleRecurrence() {
+        recurrenceGroup.style.display = recurringToggle.checked ? 'block' : 'none';
+    }
+
+    multidayToggle.addEventListener('change', toggleEndDate);
+    recurringToggle.addEventListener('change', toggleRecurrence);
+
+    // Initialize visibility
+    toggleEndDate();
+    toggleRecurrence();
+});
+</script>
+{% endblock %} 

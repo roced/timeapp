@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - TimeApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>User Profile</h1>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">{{ current_user.username }}</h5>
+            <p class="card-text">Email: {{ current_user.email }}</p>
+            <p class="card-text">Role: {{ current_user.role }}</p>
+            <p class="card-text">Member since: {{ current_user.created_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h2>Your Activity</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Events Created</h5>
+                        <p class="card-text">{{ current_user.events|length }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Events Attending</h5>
+                        <p class="card-text">{{ current_user.attendances|length }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Events Liked</h5>
+                        <p class="card-text">{{ current_user.likes|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}My Memos - TimeApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Memos</h1>
+        <a href="{{ url_for('memos.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Memo
+        </a>
+    </div>
+
+    {% if memos %}
+    <div class="row">
+        {% for memo in memos %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ memo.title }}</h5>
+                    <p class="card-text">{{ memo.content[:100] }}{% if memo.content|length > 100 %}...{% endif %}</p>
+                    {% if memo.due_date %}
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> Due: {{ memo.due_date.strftime('%Y-%m-%d') }}
+                        </small>
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group">
+                        <a href="{{ url_for('memos.view', id=memo.id) }}" class="btn btn-sm btn-info">View</a>
+                        <a href="{{ url_for('memos.edit', id=memo.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{{ url_for('memos.delete', id=memo.id) }}" class="btn btn-sm btn-danger" 
+                           onclick="return confirm('Are you sure you want to delete this memo?')">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        You don't have any memos yet. Create one using the button above!
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

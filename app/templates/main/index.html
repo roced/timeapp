@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}TimeApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if current_user.is_authenticated %}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Welcome, {{ current_user.username }}!</h1>
+            <div>
+                <a href="{{ url_for('events.create') }}" class="btn btn-primary me-2">
+                    <i class="fas fa-plus"></i> Create Event
+                </a>
+                <a href="{{ url_for('memos.create') }}" class="btn btn-success">
+                    <i class="fas fa-sticky-note"></i> New Memo
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Tag Filter -->
+    {% if all_tags %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">Filter by Tags</h5>
+                    {% if included_tags or excluded_tags %}
+                        <a href="{{ url_for('main.index') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-times"></i> Reset Filters
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for tag in all_tags %}
+                        {% if tag in included_tags %}
+                            <!-- Tag is included - show as active -->
+                            {% set remaining_included = included_tags|reject('equalto', tag)|list %}
+                            <a href="{{ url_for('main.index', 
+                                       included_tags=remaining_included|join(','),
+                                       excluded_tags=excluded_tags|join(',')) }}" 
+                                       class="badge bg-success text-decoration-none me-1">
+                                <i class="fas fa-check"></i> {{ tag }}
+                            </a>
+                        {% elif tag in excluded_tags %}
+                            <!-- Tag is excluded - show as excluded but still visible -->
+                            {% set remaining_excluded = excluded_tags|reject('equalto', tag)|list %}
+                            <a href="{{ url_for('main.index', 
+                                       included_tags=included_tags|join(','),
+                                       excluded_tags=remaining_excluded|join(',')) }}" 
+                                       class="badge bg-danger text-decoration-none me-1">
+                                <i class="fas fa-times"></i> {{ tag }}
+                            </a>
+                        {% else %}
+                            <!-- Tag is neither included nor excluded - show as available -->
+                            {% set new_included = (included_tags|list) + [tag] %}
+                            <a href="{{ url_for('main.index', 
+                                       included_tags=new_included|join(','),
+                                       excluded_tags=excluded_tags|join(',')) }}" 
+                                       class="badge bg-secondary text-decoration-none me-1">
+                                {{ tag }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if included_tags or excluded_tags %}
+                        <a href="{{ url_for('main.index') }}" 
+                           class="badge bg-warning text-decoration-none ms-2">
+                            <i class="fas fa-times"></i> Clear Filters
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Public Events Section -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Public Events</h2>
+        </div>
+        <div class="card-body">
+            {% if events %}
+                <div class="row">
+                    {% for event in events %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h3 class="card-title h5">{{ event.title }}</h3>
+                                    <p class="card-text">{{ event.description[:150] }}{% if event.description|length > 150 %}...{% endif %}</p>
+                                    
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar"></i> {{ event.start_date.strftime('%Y-%m-%d') }}
+                                            {% if event.start_time %}
+                                                at {{ event.start_time.strftime('%H:%M') }}
+                                            {% endif %}
+                                        </small>
+                                        {% if event.location %}
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-map-marker-alt"></i> {{ event.location }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if event.tags %}
+                                        <div class="mb-3">
+                                            {% for tag in event.tags.split(';') %}
+                                                {% set tag_stripped = tag.strip() %}
+                                                {% if tag_stripped %}
+                                                    <a href="{{ url_for('main.index', tag=tag_stripped) }}" 
+                                                       class="badge bg-secondary text-decoration-none me-1">
+                                                        {{ tag_stripped }}
+                                                    </a>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('events.view', id=event.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            
+                                            {% if current_user.is_authenticated %}
+                                                <form action="{{ url_for('events.like', id=event.id) }}" 
+                                                      method="POST" class="d-inline">
+                                                    <button type="submit" 
+                                                            class="btn btn-sm btn-outline-danger {% if event.likes|selectattr('user_id', 'equalto', current_user.id)|list|length > 0 %}active{% endif %}">
+                                                        <i class="fas fa-heart"></i> 
+                                                        <span class="badge bg-secondary">{{ event.likes|length }}</span>
+                                                    </button>
+                                                </form>
+                                                
+                                                <form action="{{ url_for('events.attend', id=event.id) }}" 
+                                                      method="POST" class="d-inline">
+                                                    <button type="submit" 
+                                                            class="btn btn-sm btn-outline-success {% if event.attendances|selectattr('user_id', 'equalto', current_user.id)|list|length > 0 %}active{% endif %}">
+                                                        <i class="fas fa-check"></i> 
+                                                        <span class="badge bg-secondary">{{ event.attendances|length }}</span>
+                                                    </button>
+                                                </form>
+                                                
+                                                <form action="{{ url_for('events.wishlist', id=event.id) }}" 
+                                                      method="POST" class="d-inline">
+                                                    <button type="submit" 
+                                                            class="btn btn-sm btn-outline-warning {% if event.wishlists|selectattr('user_id', 'equalto', current_user.id)|list|length > 0 %}active{% endif %}">
+                                                        <i class="fas fa-star"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">No public events available{% if current_tag %} for tag "{{ current_tag }}"{% endif %}.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 
