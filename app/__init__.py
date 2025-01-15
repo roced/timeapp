@@ -1,66 +1,45 @@
 from flask import Flask
-
-from .extensions import db, migrate, login_manager
-import os
-from .utils import nl2br
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from .config import config
+from .extensions import db, login_manager
+from .services.user_service import UserService
+import logging
 
 def create_app(config_name='default'):
     app = Flask(__name__)
-
-    
-    # Get the config class from the dictionary
-    config_class = config['development']
-    app.config.from_object(config_class)
-    config_class.init_app(app)  # Initialize logging
+    app.config.from_object(config[config_name])
     
     # Initialize extensions
     db.init_app(app)
-    migrate.init_app(app, db, render_as_batch=True)
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
-
+    Migrate(app, db)
+    
+    # Set up logging
+    logging.basicConfig(level=logging.INFO)
+    app.logger.info('TimeApp startup')
+    
+    # Import models to ensure they're registered
+    from . import models  # This is important!
+    
+    # Create admin user during app context
+    with app.app_context():
+        UserService.create_admin_if_not_exists()
+    
     # Register blueprints
-    from .auth import auth
-    app.register_blueprint(auth)
-
-    from .main import main
-    app.register_blueprint(main)
-
-    from .events import events
-    app.register_blueprint(events)
-
-    from .memos import memos
-    app.register_blueprint(memos)
-
-    from .api import api
-    app.register_blueprint(api, url_prefix='/api')
-
-    from .admin import admin
-    app.register_blueprint(admin)
-
-    from .errors import errors
-    app.register_blueprint(errors)
-
-    @login_manager.user_loader
-    def load_user(id):
-        from .models import User
-        return db.session.get(User, int(id))
-
-    # Only initialize admin in production/development AND after migrations
-    if not app.config.get('TESTING'):
-        with app.app_context():
-            try:
-                # Check if tables exist before initializing admin
-                from .models import User
-                User.query.first()
-                from .db_init import init_admin
-                init_admin(app)
-            except Exception as e:
-                # Tables don't exist yet, skip admin creation
-                pass
-
-    # Register Jinja filters
-    app.jinja_env.filters['nl2br'] = nl2br
-
+    from .main import main as main_blueprint
+    app.register_blueprint(main_blueprint)
+    
+    from .auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint)
+    
+    from .events import events as events_blueprint
+    app.register_blueprint(events_blueprint)
+    
+    from .api import api as api_blueprint
+    app.register_blueprint(api_blueprint)
+    
+    from .admin import admin as admin_blueprint
+    app.register_blueprint(admin_blueprint)
+    
     return app 

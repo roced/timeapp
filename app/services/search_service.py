@@ -13,7 +13,7 @@ class SearchService:
                 Event.title.ilike(search),
                 Event.description.ilike(search),
                 Event.location.ilike(search),
-                Event.tags.ilike(search)
+                Event.tags.ilike(search)  # Works with semicolon-separated tags
             )
         )
         
@@ -21,11 +21,11 @@ class SearchService:
             events = events.filter(
                 or_(
                     Event.owner_id == user_id,
-                    Event.is_public == True
+                    Event.is_public == True  # noqa: E712
                 )
             )
         else:
-            events = events.filter(Event.is_public == True)
+            events = events.filter(Event.is_public == True)  # noqa: E712
             
         return events.order_by(Event.start_date.desc()).all()
 

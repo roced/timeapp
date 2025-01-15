@@ -4,137 +4,178 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>{{ event.title }}</h1>
-        <div>
-            <a href="{{ url_for('events.list') }}" class="btn btn-secondary me-2">
-                <i class="fas fa-arrow-left"></i> Back to Events
-            </a>
-            {% if current_user.is_authenticated and current_user.id == event.owner_id %}
-                <a href="{{ url_for('events.edit', id=event.id) }}" class="btn btn-primary me-2">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                {% if not event.is_public and current_user.role == 'viewer' %}
-                    <form action="{{ url_for('events.request_promotion', id=event.id) }}" 
+    <div class="card">
+        <div class="card-body">
+            <h1 class="card-title">{{ event.title }}</h1>
+            
+            {% if current_user.is_authenticated and event.owner_id == current_user.id %}
+                <div class="mb-3">
+                    <a href="{{ url_for('events.edit', id=event.id) }}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    
+                    {% if not event.is_public and not event.pending_promotion %}
+                    <form action="{{ url_for('events.request_promotion', id=event.id) }}"
                           method="POST" class="d-inline">
-                        <button type="submit" class="btn btn-success me-2" 
-                                {% if event.pending_promotion %}disabled{% endif %}>
-                            <i class="fas fa-arrow-up"></i> 
-                            {% if event.pending_promotion %}
-                                Promotion Pending
-                            {% else %}
-                                Request Public
-                            {% endif %}
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-arrow-up"></i> Request Public
                         </button>
                     </form>
-                {% endif %}
-            {% endif %}
-        </div>
-    </div>
+                    {% endif %}
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <p class="card-text">{{ event.description }}</p>
-            <hr>
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Date:</strong> {{ event.start_date.strftime('%Y-%m-%d') }}</p>
-                    {% if event.start_time %}
-                        <p><strong>Time:</strong> {{ event.start_time.strftime('%H:%M') }}</p>
+                    {% if event.pending_promotion %}
+                    <span class="badge bg-warning">Promotion Pending</span>
                     {% endif %}
-                    {% if event.end_date %}
-                        <p><strong>End Date:</strong> {{ event.end_date.strftime('%Y-%m-%d') }}</p>
-                    {% endif %}
-                </div>
-                <div class="col-md-6">
-                    {% if event.location %}
-                        <p><strong>Location:</strong> {{ event.location }}</p>
-                    {% endif %}
-                    {% if event.venue %}
-                        <p><strong>Venue:</strong> {{ event.venue }}</p>
-                    {% endif %}
-                    {% if event.info_link %}
-                        <p><strong>More Info:</strong> <a href="{{ event.info_link }}" target="_blank">{{ event.info_link }}</a></p>
-                    {% endif %}
-                </div>
-            </div>
-            {% if event.tags %}
-                <div class="mt-3">
-                    {% for tag in event.tags.split(';') %}
-                        <span class="badge bg-secondary me-1">{{ tag }}</span>
-                    {% endfor %}
+                    
+                    <form action="{{ url_for('events.delete', id=event.id) }}"
+                          method="POST" class="d-inline float-end"
+                          onsubmit="return confirm('Are you sure you want to delete this event?');">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </form>
                 </div>
             {% endif %}
-        </div>
-    </div>
 
-    {% if current_user.is_authenticated %}
-        <div class="card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <form action="{{ url_for('events.like', id=event.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-outline-primary me-2">
-                                <i class="fas fa-heart"></i> Like
-                                <span class="badge bg-secondary">{{ event.likes|length }}</span>
-                            </button>
-                        </form>
-                        <form action="{{ url_for('events.attend', id=event.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-outline-success me-2">
-                                <i class="fas fa-check"></i> Attend
-                                <span class="badge bg-secondary">{{ event.attendances|length }}</span>
-                            </button>
-                        </form>
-                        <form action="{{ url_for('events.wishlist', id=event.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-outline-warning">
-                                <i class="fas fa-star"></i> Wishlist
-                            </button>
-                        </form>
+            <div class="event-details mt-4">
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Description -->
+                        <h5>Description</h5>
+                        <p class="mb-4">{{ event.description }}</p>
+
+                        <!-- Date and Time -->
+                        <h5>When</h5>
+                        <p>
+                            Start: {{ event.start_date.strftime('%Y-%m-%d') }}
+                            {% if event.start_time %}
+                                at {{ event.start_time.strftime('%H:%M') }}
+                            {% endif %}
+                        </p>
+                        {% if event.is_multiday and event.end_date %}
+                            <p>End: {{ event.end_date.strftime('%Y-%m-%d') }}</p>
+                        {% endif %}
+                        {% if event.is_recurring %}
+                            <p>Recurring: {{ event.recurrence_pattern }}</p>
+                        {% endif %}
+
+                        <!-- Location -->
+                        {% if event.location or event.venue %}
+                            <h5>Where</h5>
+                            {% if event.location %}
+                                <p>Location: {{ event.location }}</p>
+                            {% endif %}
+                            {% if event.venue %}
+                                <p>Venue: {{ event.venue }}</p>
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- Tags -->
+                        {% if event.tags %}
+                            <h5>Tags</h5>
+                            <div class="mb-3">
+                                {% for tag in event.tag_list %}
+                                    <span class="badge bg-secondary me-1">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Additional Info -->
+                        {% if event.info_link %}
+                            <h5>Additional Information</h5>
+                            <p><a href="{{ event.info_link }}" target="_blank" rel="noopener noreferrer">
+                                <i class="fas fa-external-link-alt"></i> More details
+                            </a></p>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4">
+                        <!-- Interaction Buttons -->
+                        {% if current_user.is_authenticated %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Interact</h5>
+                                    
+                                    <!-- Like Button -->
+                                    <form action="{{ url_for('api.toggle_like', id=event.id) }}"
+                                          method="POST" class="d-inline mb-2">
+                                        <button type="submit" 
+                                                class="btn {% if event.is_liked %}btn-danger{% else %}btn-outline-danger{% endif %} w-100">
+                                            <i class="fas fa-heart"></i> 
+                                            {% if event.is_liked %}Unlike{% else %}Like{% endif %}
+                                            <span class="badge bg-light text-dark">{{ event.like_count }}</span>
+                                        </button>
+                                    </form>
+
+                                    <!-- Attend Button -->
+                                    <form action="{{ url_for('api.toggle_attendance', id=event.id) }}"
+                                          method="POST" class="d-inline mb-2">
+                                        <button type="submit" 
+                                                class="btn {% if event.is_attending %}btn-success{% else %}btn-outline-success{% endif %} w-100">
+                                            <i class="fas fa-check"></i>
+                                            {% if event.is_attending %}Not Going{% else %}Going{% endif %}
+                                            <span class="badge bg-light text-dark">{{ event.attendance_count }}</span>
+                                        </button>
+                                    </form>
+
+                                    <!-- Wishlist Button -->
+                                    <form action="{{ url_for('api.toggle_wishlist', id=event.id) }}"
+                                          method="POST" class="d-inline">
+                                        <button type="submit" 
+                                                class="btn {% if event.in_wishlist %}btn-info{% else %}btn-outline-info{% endif %} w-100">
+                                            <i class="fas fa-star"></i>
+                                            {% if event.in_wishlist %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Event Status -->
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Status</h5>
+                                <p class="mb-0">
+                                    <i class="fas {% if event.is_public %}fa-globe{% else %}fa-lock{% endif %}"></i>
+                                    {{ 'Public' if event.is_public else 'Private' }} Event
+                                </p>
+                                <p class="mb-0">
+                                    <i class="fas fa-user"></i>
+                                    Created by {{ event.owner.username }}
+                                </p>
+                                <p class="mb-0">
+                                    <i class="fas fa-clock"></i>
+                                    Created {{ event.created_at.strftime('%Y-%m-%d') }}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    {% endif %}
+    </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    {% if current_user.is_authenticated %}
-    const likeBtn = document.getElementById('likeBtn');
-    const attendBtn = document.getElementById('attendBtn');
-    const wishlistBtn = document.getElementById('wishlistBtn');
-
-    likeBtn.addEventListener('click', () => toggleAction('like'));
-    attendBtn.addEventListener('click', () => toggleAction('attend'));
-    wishlistBtn.addEventListener('click', () => toggleAction('wishlist'));
-
-    function toggleAction(action) {
-        const eventId = {{ event.id }};
-        fetch(`/api/events/${eventId}/${action}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                if (action === 'like') {
-                    document.getElementById('likeCount').textContent = data.count;
-                    likeBtn.classList.toggle('active');
-                } else if (action === 'attend') {
-                    document.getElementById('attendCount').textContent = data.count;
-                    attendBtn.classList.toggle('active');
-                } else if (action === 'wishlist') {
-                    wishlistBtn.classList.toggle('active');
+// Add AJAX handling for the forms
+document.querySelectorAll('form').forEach(form => {
+    if (form.action.includes('/api/')) {  // Only for API endpoints
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-            }
+            });
+            const data = await response.json();
+            // Reload to update UI
+            location.reload();
         });
     }
-    {% endif %}
 });
 </script>
 {% endblock %} 

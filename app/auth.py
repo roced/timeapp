@@ -1,9 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
-from .models import User
-from .extensions import db
-from .forms.auth_form import LoginForm, RegisterForm
-from werkzeug.security import generate_password_hash, check_password_hash
+from .forms.auth_forms import LoginForm, RegistrationForm
+from .services.user_service import UserService
 
 auth = Blueprint('auth', __name__)
 
@@ -14,13 +12,12 @@ def login():
     
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user and check_password_hash(user.password_hash, form.password.data):
-            login_user(user, remember=form.remember.data)
+        user = UserService.get_user_by_username(form.username.data)
+        if user and UserService.verify_password(user, form.password.data):
+            login_user(user, remember=form.remember_me.data)
             next_page = request.args.get('next')
             return redirect(next_page or url_for('main.index'))
-        flash('Invalid username or password', 'danger')
-    
+        flash('Invalid username or password', 'error')
     return render_template('auth/login.html', form=form)
 
 @auth.route('/logout')
@@ -34,26 +31,24 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
-    form = RegisterForm()
+    form = RegistrationForm()
     if form.validate_on_submit():
-        if User.query.filter_by(username=form.username.data).first():
-            flash('Username already exists', 'danger')
+        if UserService.get_user_by_username(form.username.data):
+            flash('Username already taken.', 'error')
             return render_template('auth/register.html', form=form)
         
-        if User.query.filter_by(email=form.email.data).first():
-            flash('Email already registered', 'danger')
+        if UserService.get_user_by_email(form.email.data):
+            flash('Email already registered.', 'error')
             return render_template('auth/register.html', form=form)
         
-        user = User(
-            username=form.username.data,
-            email=form.email.data,
-            password_hash=generate_password_hash(form.password.data),
-            role='viewer'
-        )
-        db.session.add(user)
-        db.session.commit()
+        user = UserService.create_user({
+            'username': form.username.data,
+            'email': form.email.data,
+            'password': form.password.data,
+            'role': 'viewer'  # Default role for new users
+        })
         
-        flash('Registration successful! Please login.', 'success')
+        flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('auth.login'))
     
     return render_template('auth/register.html', form=form)

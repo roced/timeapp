@@ -1,0 +1,25 @@
+<div class="list-group">
+    <a href="{{ url_for('admin.dashboard') }}" 
+       class="list-group-item list-group-item-action {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+    </a>
+    <a href="{{ url_for('admin.manage_users') }}" 
+       class="list-group-item list-group-item-action {% if request.endpoint == 'admin.manage_users' %}active{% endif %}">
+        <i class="fas fa-users"></i> Users
+    </a>
+    <a href="{{ url_for('admin.manage_events') }}" 
+       class="list-group-item list-group-item-action {% if request.endpoint == 'admin.manage_events' %}active{% endif %}">
+        <i class="fas fa-calendar"></i> Events
+    </a>
+    <a href="{{ url_for('admin.manage_promotions') }}" 
+       class="list-group-item list-group-item-action {% if request.endpoint == 'admin.manage_promotions' %}active{% endif %}">
+        <i class="fas fa-arrow-up"></i> Promotions
+        {% if stats.pending_promotions > 0 %}
+            <span class="badge bg-danger float-end">{{ stats.pending_promotions }}</span>
+        {% endif %}
+    </a>
+    <a href="{{ url_for('admin.import_events') }}" 
+       class="list-group-item list-group-item-action {% if request.endpoint == 'admin.import_events' %}active{% endif %}">
+        <i class="fas fa-upload"></i> Import Events
+    </a>
+</div> 

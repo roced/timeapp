@@ -1,84 +1,156 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard - TimeApp{% endblock %}
-
 {% block content %}
-<div class="container mt-4">
-    <h1>Admin Dashboard</h1>
-    
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Users</h5>
-                    <p class="card-text">Total: {{ stats.users.total }}</p>
-                    <p class="card-text">New this week: {{ stats.users.new_last_week }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Events</h5>
-                    <p class="card-text">Total: {{ stats.events.total }}</p>
-                    <p class="card-text">Public: {{ stats.events.public }}</p>
-                    <p class="card-text">Private: {{ stats.events.private }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pending Events -->
-    {% if pending_events %}
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0">Pending Event Promotions</h5>
-        </div>
-        <div class="card-body">
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2">
             <div class="list-group">
-                {% for event in pending_events %}
-                <div class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">{{ event.title }}</h6>
-                            <small>By {{ event.owner.username }} on {{ event.created_at.strftime('%Y-%m-%d') }}</small>
-                        </div>
-                        <div class="btn-group">
-                            <form action="{{ url_for('admin.promote_event', id=event.id) }}" method="POST" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                            </form>
-                            <form action="{{ url_for('admin.reject_promotion', id=event.id) }}" method="POST" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-danger">Reject</button>
-                            </form>
+                <a href="{{ url_for('admin.dashboard') }}" 
+                   class="list-group-item list-group-item-action {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="{{ url_for('admin.manage_users') }}" 
+                   class="list-group-item list-group-item-action {% if request.endpoint == 'admin.manage_users' %}active{% endif %}">
+                    <i class="fas fa-users"></i> Users
+                </a>
+                <a href="{{ url_for('admin.manage_events') }}" 
+                   class="list-group-item list-group-item-action {% if request.endpoint == 'admin.manage_events' %}active{% endif %}">
+                    <i class="fas fa-calendar"></i> Events
+                </a>
+                <a href="{{ url_for('admin.manage_promotions') }}" 
+                   class="list-group-item list-group-item-action {% if request.endpoint == 'admin.manage_promotions' %}active{% endif %}">
+                    <i class="fas fa-arrow-up"></i> Promotions
+                    {% if stats.pending_promotions > 0 %}
+                        <span class="badge bg-danger float-end">{{ stats.pending_promotions }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin.import_events') }}" 
+                   class="list-group-item list-group-item-action {% if request.endpoint == 'admin.import_events' %}active{% endif %}">
+                    <i class="fas fa-upload"></i> Import Events
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <div class="row">
+                <!-- Statistics Cards -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Users</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_users }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
 
-    <!-- Recent Events -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">Recent Events</h5>
-        </div>
-        <div class="card-body">
-            <div class="list-group">
-                {% for event in recent_events %}
-                <div class="list-group-item">
-                    <h6 class="mb-1">{{ event.title }}</h6>
-                    <p class="mb-1">Created by: {{ event.owner.username }}</p>
-                    <small>Created on: {{ event.created_at.strftime('%Y-%m-%d') }}</small>
-                    <div class="mt-2">
-                        <a href="{{ url_for('events.view', id=event.id) }}" class="btn btn-sm btn-info">View</a>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Total Events</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_events }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                {% endfor %}
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Pending Promotions</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pending_promotions }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-arrow-up fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Events -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Events</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Created</th>
+                                    <th>Owner</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in stats.recent_events %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('events.view', id=event.id) }}">
+                                            {{ event.title }}
+                                        </a>
+                                    </td>
+                                    <td>{{ event.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ event.owner.username }}</td>
+                                    <td>
+                                        {% if event.is_public %}
+                                            <span class="badge bg-success">Public</span>
+                                        {% elif event.pending_promotion %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Private</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.border-left-primary {
+    border-left: .25rem solid #4e73df!important;
+}
+.border-left-success {
+    border-left: .25rem solid #1cc88a!important;
+}
+.border-left-warning {
+    border-left: .25rem solid #f6c23e!important;
+}
+.text-gray-300 {
+    color: #dddfeb!important;
+}
+.text-gray-800 {
+    color: #5a5c69!important;
+}
+</style>
 {% endblock %} 

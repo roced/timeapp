@@ -60,7 +60,7 @@
                             </p>
                             {% if event.tags %}
                             <p class="card-text">
-                                {% for tag in event.tags.split(',') %}
+                                {% for tag in event.tags.split(';') %}
                                 <span class="badge bg-secondary">{{ tag.strip() }}</span>
                                 {% endfor %}
                             </p>
